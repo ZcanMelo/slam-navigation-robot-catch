@@ -1,0 +1,2 @@
+2025-04-11T08:25:34.396088Z  INFO dora_daemon::coordinator: Connected to dora-coordinator at 127.0.0.1:53290
+2025-04-11T08:25:55.700838Z  INFO run_inner{self.machine_id=}: dora_daemon::spawn: spawning: /home/nvidia/SSD/indoorslam/0326_yewai/livox/livox_dora_driver2/build/livox_dora_driver_node

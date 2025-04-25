@@ -1,0 +1,1 @@
+/usr/bin/clang++ -std=c++14 -pthread -Wall -Wextra  -O2 -rdynamic CMakeFiles/lat_controller_node.dir/interface_lat.cpp.o CMakeFiles/lat_controller_node.dir/pure_pursuit.cpp.o -o lat_controller_node  /home/nvidia/SSD/dora-0.3.8/target/release/libdora_node_api_c.a -lm -lrt -ldl -lpthread 
