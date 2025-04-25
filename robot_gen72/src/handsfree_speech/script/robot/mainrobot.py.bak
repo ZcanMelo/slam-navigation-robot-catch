@@ -1,0 +1,179 @@
+#!/usr/bin/env python3
+#coding=UTF-8 
+import sys 
+sys.path.append("./")
+from std_msgs.msg import String
+from std_msgs.msg import Int8
+import rospy
+import requests
+import json
+import time
+import socket
+import os
+
+base_url = "http://172.16.11.78:30017"
+
+wavflag = 0
+
+msg_node = rospy.Publisher("msg", String, queue_size = 1)
+response = rospy.Publisher("response_msg", String, queue_size=20) 
+LLMstate = rospy.Publisher("record_end_flag", Int8, queue_size=1)   
+
+# 处理PCM
+def callback_tcpclient(endflag):
+    flag = endflag.data
+    if flag == 1:
+        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        server_host = "172.16.11.78"  # 服务器的IP地址或主机名
+        server_port = 30018          # 服务器端口号
+        BUFFER_SIZE = 1024
+        client_socket.connect((server_host, server_port))
+        filename='/home/handsfree/handsfree/handsfree_ros_ws/src/handsfree/handsfree_speech/res/speaking_ok.wav'
+        file_size=os.stat(filename).st_size #huoqu wenjiandaxiao
+        client_socket.send(str(file_size).encode(encoding="utf-8"))
+        
+        receive_server_ok=client_socket.recv(1024)
+        #print("接收到的反馈为",receive_server_ok.decode(encoding="utf-8"))
+        
+        # 发送音频文件给服务器
+        with open(filename, "rb") as audio_file:
+            while True:
+                data = audio_file.read(1024)
+                if not data:
+                    break
+                client_socket.send(data)
+        print("音频文件发送完成")
+
+        # 接收并打印回复的转录文本  
+        transcribed_text=client_socket.recv(1024).decode('utf-8')
+
+        print("Transcript:", transcribed_text)
+
+        msg = String()
+        msg.data = transcribed_text
+        msg_node.publish(msg)
+        client_socket.close()
+
+
+
+def create_chat_completion(model, messages, functions, use_stream=False):
+    data = {
+        "function": functions,  # 函数定义
+        "model": model,  # 模型名称
+        "messages": messages,  # 会话历史
+        "stream": use_stream,  # 是否流式响应
+        "max_tokens": 100,  # 最多生成字数
+        "temperature": 0.8,  # 温度
+        "top_p": 0.8,  # 采样概率
+    }
+
+    response = requests.post(f"{base_url}/v1/chat/completions", json=data, stream=use_stream)
+    if response.status_code == 200:
+        if use_stream:
+            # 处理流式响应
+            for line in response.iter_lines():
+                if line:
+                    decoded_line = line.decode('utf-8')[6:]
+                    try:
+                        response_json = json.loads(decoded_line)
+                        content = response_json.get("choices", [{}])[0].get("delta", {}).get("content", "")
+                        print(content)
+                    except:
+                        print("Special Token:", decoded_line)
+        else:
+            # 处理非流式响应
+            decoded_line = response.json()
+            content = decoded_line.get("choices", [{}])[0].get("message", "").get("content", "")
+            print(content)
+            return content
+    else:
+        print("Error:", response.status_code)
+        return None
+
+
+def function_chat(use_stream=True):
+    functions = [
+        {
+            "name": "get_current_weather",
+            "description": "Get the current weather in a given location.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "location": {
+                        "type": "string",
+                        "description": "The city and state, e.g. Beijing",
+                    },
+                    "unit": {"type": "string", "enum": ["celsius", "fahrenheit"]},
+                },
+                "required": ["location"],
+            },
+        }
+    ]
+    chat_messages = [
+        {
+            "role": "user",
+            "content": "波士顿天气如何？",
+        },
+        {
+            "role": "assistant",
+            "content": "get_current_weather\n ```python\ntool_call(location='Beijing', unit='celsius')\n```",
+            "function_call": {
+                "name": "get_current_weather",
+                "arguments": '{"location": "Beijing", "unit": "celsius"}',
+            },
+        },
+        {
+            "role": "function",
+            "name": "get_current_weather",
+            "content": '{"temperature": "12", "unit": "celsius", "description": "Sunny"}',
+        },
+        # ... 接下来这段是 assistant 的回复和用户的回复。
+        # {
+        #     "role": "assistant",
+        #     "content": "根据最新的天气预报，目前北京的天气情况是晴朗的，温度为12摄氏度。",
+        # },
+        # {
+        #     "role": "user",
+        #     "content": "谢谢",
+        # }
+    ]
+    answer = create_chat_completion("chatglm3-6b", messages=chat_messages, functions=functions, use_stream=use_stream)
+    return answer
+
+def simple_chat(use_stream,prompt):
+    functions = None
+    chat_messages = [
+        {
+            "role": "system",
+            "content": "你是一个光明实验室研发的具身智能机器人",
+        },
+        {
+            "role": "user",
+            "content": prompt
+        }
+    ]
+    answer = create_chat_completion("chatglm3-6b", messages=chat_messages, functions=functions, use_stream=use_stream)
+    return answer
+
+
+def callback_msg(msg):
+    global cur_pos
+    wav = String()
+    #添加一个判断，输出文字长度小于8，不进入大预言模型。
+    if len(msg.data) >= 4 :
+    #rospy.loginfo(msg.data)
+        prompt = msg.data
+        chatresponse=simple_chat(False, prompt)
+        rospy.loginfo(prompt)
+        rospy.loginfo(chatresponse)
+        #发布一个response
+        response.publish(chatresponse)
+    # 调用播放模块播放res1
+    #LLMstate.publish(0) #关闭互锁状态
+
+if __name__ == '__main__':
+    rospy.init_node('main')
+    print("运行中, 等待语音消息")
+    rospy.Subscriber("/record_end_flag", Int8, callback_tcpclient) #订阅 录音结束话题，并且回调相关函数
+    rospy.Subscriber("/msg", String, callback_msg) #订阅识别文字话题，
+    rospy.spin()

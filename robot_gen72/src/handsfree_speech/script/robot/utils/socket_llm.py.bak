@@ -1,0 +1,51 @@
+ #coding=utf-8
+
+
+import socket
+import rospy
+from std_msgs.msg import String
+
+# 音频转文本
+save_dir = "/home/handsfree/handsfree/handsfree_ros_ws/src/handsfree/offline_mic_vad/audio"
+test_node = rospy.Publisher("socket_llm", String, queue_size = 1)
+msg_node = rospy.Publisher("msg", String, queue_size = 1)
+def socket_llm(file_name):
+    # 创建一个Socket对象
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+    # 设置接收方的IP地址和端口号
+    receiver_ip = '172.16.11.37'
+    receiver_port = 6000
+
+    # 连接到接收方的Socket
+    s.connect((receiver_ip, receiver_port))
+
+    # 打开要发送的WAV文件
+    with open(save_dir + file_name.data, 'rb') as file:
+        data = file.read(1024) # 每次读取1024字节数据
+        while data:
+            s.send(data) # 发送数据
+            data = file.read(1024)
+
+    # 关闭Socket连接
+    s.close()
+
+    # 接收服务器端的转录文本
+    s2 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s2.connect((receiver_ip, receiver_port))
+
+    transcribed_text = s2.recv(1024).decode('utf-8')
+    print("Transcript:", transcribed_text)
+
+    msg = String()
+    msg.data = transcribed_text
+    msg_node.publish(msg)
+
+    # 关闭Socket连接
+    s2.close()
+
+
+if __name__ == '__main__':
+    rospy.init_node('socket_llm')
+    rospy.Subscriber("/socket_llm", String, socket_llm) #接受topic
+    rospy.spin()

@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<launch>
+    <node name="handsfree_offlinelistener" pkg="handsfree_speech" type="handsfree_offlinelistener" output="screen" required="true">
+    </node>
+    <node name="handsfree_offlinetalker" pkg="handsfree_speech" type="handsfree_offlinetalker" output="screen" required="true">
+    </node>
+</launch>

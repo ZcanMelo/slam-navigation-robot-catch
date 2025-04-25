@@ -1,0 +1,27 @@
+#!/usr/bin/env python3 
+# -*- coding: utf-8 -*-
+import socket
+
+server_address = ('172.16.4.188', 6001)
+buffer_size = 1024
+
+client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+# 将文件分为小块进行传输
+filename = '/home/handsfree/handsfree/handsfree_ros_ws/src/handsfree/offline_mic_vad/audio/input_audio.wav'
+with open(filename, 'rb') as f:
+    while True:
+        # 读取一小块数据
+        data = f.read(buffer_size)
+        if not data:
+            break
+
+        # 发送数据
+        client_socket.sendto(data, server_address)
+
+        # 等待确认消息
+        message, server_address = client_socket.recvfrom(buffer_size)
+	print((message.decode('utf-8')))
+
+# 关闭socket连接
+client_socket.close()

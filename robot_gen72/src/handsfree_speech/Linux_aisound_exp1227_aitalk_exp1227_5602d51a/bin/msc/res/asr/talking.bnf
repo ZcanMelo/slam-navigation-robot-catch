@@ -1,0 +1,23 @@
+#BNF+IAT 1.0 UTF-8;
+!grammar control;
+
+!slot <move>;
+!slot <time>;
+!slot <wake>;
+!slot <goal>;
+!slot <ptrl>;
+
+!start <callstart>;
+<callstart>:<control>;
+<control>:<wake>|<move>|<time>|<goal>|<ptrl>;
+
+
+<wake>:你好小明!id(99999)|小明小明!id(99999)|休眠!id(55555)|休息!id(55555);
+
+<move>:往前走!id(10001)|前进!id(10001)|向前进!id(10001)|后退!id(10002)|向后退!id(10002)|退后!id(10002)|向左转!id(10003)|左转!id(10003)|右转!id(10004)|向右转!id(10004)|退出语音模式!id(10005)|关机!id(10005);
+
+<time>:时间!id(10006)|现在几点!id(10006)|现在!id(10006);
+
+<goal>:去主展台!id(10007)|去区块链展台!id(10008)|去三维建模展台!id(10009)|去泛在感知展台!id(10010);
+
+<ptrl>:开始巡逻!id(10011)|结束巡逻!id(10012);

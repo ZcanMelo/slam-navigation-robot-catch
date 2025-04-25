@@ -1,0 +1,8 @@
+<launch>
+    <!-- 启动 robot_contrl_node -->
+    <node pkg="robot_contrl" type="robot_contrl_node" name="robot_contrl_node" output="screen" />
+
+    <!-- 启动 rstest.py 脚本 -->
+    <node pkg="yolov5_detect" type="rstest.py" name="rstest" output="screen" />
+</launch>
+

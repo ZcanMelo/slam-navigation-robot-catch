@@ -1,0 +1,47 @@
+#!/usr/bin/env python3 
+# -*- coding: utf-8 -*-
+# import socket
+
+# # 连接到服务器 
+# client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+# client.connect(("172.16.11.37", 6000)) 
+
+# # 读取音频文件并发送
+# with open("xunfeinone.wav", "rb") as f:
+#     audio_data = f.read()
+#     client.send(audio_data)
+
+# # 接收并打印回复的转录文本  
+# text = client.recv(1024).decode('utf-8')
+# print("Transcript:", text)
+
+import socket
+
+# 创建客户端套接字
+client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+server_host = "172.16.4.188" 
+#server_host = "172.16.11.37"  # 服务器的IP地址或主机名
+server_port = 6000          # 服务器端口号
+
+# 连接到服务器
+client_socket.connect((server_host, server_port))
+
+# 发送音频文件给服务器
+with open("/home/handsfree/handsfree/handsfree_ros_ws/src/handsfree/offline_mic_vad/audio/input_audio.wav", "rb") as audio_file:
+    while True:
+        data = audio_file.read(1024)
+        if not data:
+            break
+        client_socket.send(data)
+print("音频文件发送完成")
+client_socket.close()
+
+s2 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s2.connect((server_host, server_port))
+# 接收并打印回复的转录文本  
+text = s2.recv(1024).decode('utf-8')
+print(("Transcript:", text))
+
+s2.close()
+# 关闭连接
+

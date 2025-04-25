@@ -1,0 +1,9 @@
+<launch>
+  <node
+    pkg="yolov5_detect" 
+    type="rstest" 
+    name="object_detector" 
+    output="screen">
+    <param name="yolov5_yaml_path" value="$(find yolov5_detect)/scripts/config/yolov5s.yaml"/>
+  </node>
+</launch>

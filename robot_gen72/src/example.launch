@@ -1,0 +1,15 @@
+<launch>
+    <!-- robot namespace -->
+    <group ns="robot">
+        <node pkg="robot_contrl" type="robot_contrl_node" name="robot_contrl_node" output="screen" />
+        <node pkg="yolov5_detect" type="rstest" name="rstest_node" output="screen" 
+              pythonpath="/home/nvidia/anaconda3/envs/Yolov5/lib/python3.8/site-packages:$(env PYTHONPATH)" />
+    </group>
+
+    <!-- yolo namespace -->
+    <group ns="yolo">
+        <node pkg="yolov5_detect" type="rstest" name="object_detector" output="screen" 
+              pythonpath="/home/nvidia/SSD/anaconda3/envs/Yolov5/lib/python3.8/site-packages:$(env PYTHONPATH)" />
+    </group>
+</launch>
+
