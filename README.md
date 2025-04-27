@@ -7,5 +7,5 @@ The objective is to achieve the following workflow: perform speech recognition u
 
 ## 📄 项目详细文档
 
-详细项目介绍请参考：[点击下载项目文档](Microsoft Word - 自动驾驶DORA平台软件系统 使用手册 (1).pdf)
+详细项目介绍请参考：[点击下载项目文档](autonomous_manual.pdf)
 
