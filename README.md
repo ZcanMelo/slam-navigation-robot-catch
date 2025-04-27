@@ -5,6 +5,10 @@
 This project is a demonstration developed for the 2024 Go Sim China event.
 The objective is to achieve the following workflow: perform speech recognition using Whisper, extract command keywords using the Qianwen large language model, and transmit the keywords to the robotic arm. Meanwhile, the vehicle receives the signal, localizes itself using LiDAR SLAM, and navigates autonomously based on a predefined route. Upon reaching the target location, the vehicle sends a signal to the robotic arm, which then uses YOLOv5 for object detection and completes the grasping task.
 
+## 📺 项目视频
+
+视频介绍：[点击观看项目演示视频（youtube）](https://www.youtube.com/watch?v=pquhG_lcHEE)
+
 ## 📄 项目详细文档
 
 详细项目介绍请参考：[点击下载项目文档](autonomous_manual.pdf)
