@@ -8,6 +8,7 @@ The objective is to achieve the following workflow: perform speech recognition u
 ## 📺 项目视频
 
 视频介绍：[点击观看项目演示视频（youtube）](https://www.youtube.com/watch?v=pquhG_lcHEE)
+         [点击观看项目演示视频（b站）](https://www.bilibili.com/video/BV1FhjPziE3Y/?spm_id_from=333.1387.homepage.video_card.click)
 
 ## 📄 项目详细文档
 
