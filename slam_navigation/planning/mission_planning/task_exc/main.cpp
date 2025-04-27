@@ -68,32 +68,6 @@ inline CurPose_h task_server::get_Curpose_WithMutex()
     return res;
 }
 
-inline VehicleStat_h task_server::get_Stat_WithMutex()
-{
-    VehicleStat_h res;
-    mtx_stat.lock();
-    res = dora_stat_data;
-    mtx_stat.unlock();
-    return res;
-}
-
-inline RoadAttri_h task_server::get_RoadAttri_WithMutex()
-{
-    RoadAttri_h res;
-    mtx_road.lock();
-    res = dora_road_attri; 
-    mtx_road.unlock();
-    return res;
-}
-
-inline ObjectArray_h task_server::get_Object_WithMutex(){
-    ObjectArray_h res;
-    mtx_object.lock();
-    res = dora_object_arry;
-    mtx_object.unlock();
-    return res;
-}
-
 //***************************************************************************************************************************
 
 
