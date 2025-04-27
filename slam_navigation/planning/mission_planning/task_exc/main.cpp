@@ -33,28 +33,6 @@ struct sockaddr_in server_address;
 
 
 
-// bool task_server::onTaskCallRecvd(char* msg, void *dora_context)
-// {
-//     std::cout << "***********Task**************" << std::endl;
-//     Task_h *task = reinterpret_cast<Task_h *>(msg);
-//     std::cout << "I recv a mission: " << task->task_type << endl;
-
-//     switch (task->task_type)
-//     {
-//         case 1:
-//         {
-//             std::thread thread([this, task, dora_context]{
-//                 this->Avoid_obstacle(task->s_start, task->s_end, task->info, dora_context);
-//             });
-//             thread.detach();
-//             break;
-//         }   
-//     }
-
-//     return true;
-// }
-
-
 //****************************************接受消息**********************************************
 
 void task_server::onCurPoseSDRecvd(char *msg)
@@ -75,54 +53,7 @@ void task_server::onCurPoseSDRecvd(char *msg)
     mtx_pose.unlock();
 }
 
-void task_server::onStatMsgRecvd(char *msg)
-{
-    // std::cout << "***********stat**************" << std::endl;
 
-    mtx_stat.lock();
-    VehicleStat_h *cur_stat = reinterpret_cast<VehicleStat_h *>(msg);
-    if (cur_stat != nullptr) 
-    {
-        dora_stat_data = *cur_stat;
-    }
-    else
-    {
-        std::cerr << "Invalid pointer: cur_stat is null." << std::endl;
-    }
-    mtx_stat.unlock();
-}
-
-void task_server::onAttriRecvd(char *msg)
-{
-    // std::cout << "***********Attri**************" << std::endl;
-    mtx_road.lock();
-    RoadAttri_h *road_msg = reinterpret_cast<RoadAttri_h *>(msg);
-    if (road_msg != nullptr) 
-    {
-        dora_road_attri = *road_msg;
-    }
-    else
-    {
-        std::cerr << "Invalid pointer: road_msg is null." << std::endl;
-    }
-    mtx_road.unlock();
-    
-}
-
-void task_server::onTargetRecvd(char *msg)
-{
-    mtx_object.lock();
-    ObjectArray_h *target_msg = reinterpret_cast<ObjectArray_h *>(msg);
-    if (target_msg != nullptr) 
-    {
-        dora_object_arry = *target_msg;
-    }
-    else
-    {
-        std::cerr << "Invalid pointer: target_msg is null." << std::endl;
-    }
-    mtx_object.unlock();
-}
 
 //*****************************************************************************
 
@@ -191,27 +122,6 @@ inline bool task_server::SetSpeed(bool enable,float speed,std::string source, vo
 
 }
 
-inline bool task_server::SetRoute(bool enabel,float d,float s, void* dora_context){
-    Route_h srv;
-    srv.enable    = enabel;
-    srv.target_s  = s;
-    srv.target_d  = d;
-
-
-    Route_h * srv_out = &srv;
-    char * output_data = (char*)srv_out;
-    std::string out_id = "routing_service";
-    // std::cout<<"77777777777777777777777777777"<<endl;
-    int result = dora_send_output(dora_context, &out_id[0], out_id.length(), output_data, sizeof(Route_h));
-    if (result != 0)
-    {
-        std::cerr << "failed to send output" << std::endl;
-    }
-    // std::cout<<"88888888888888888888888888888"<<endl;
-    return true;
-}
- 
-
 inline bool task_server::SetStop(bool enable,float distance,std::string source, void* dora_context){
     Controlsrv_h *srv = new Controlsrv_h;
     srv->type   = srv->Is_stop;
@@ -253,63 +163,7 @@ inline bool task_server::SetBackCar(bool enable,std::string source, void* dora_c
 }
 //***********************************************************************************************************
 
-//***************************************************任务执行需要的功能函数**************************************
-bool task_server::Is_have_target(int position,float s_cur,float front,float back,ObjectArray_h &objectArry)
-{
-    
-    float road_w = get_RoadAttri_WithMutex().road_width;
-    for(const auto &obj : objectArry.objs)
-    {
-        //整个车道
-        if(position == 0){
-            if(obj.s_pos>(s_cur-back) && obj.s_pos<(s_cur+front)) return true;
-        }
-        //左车道
-        if(position == 1){
-            if(obj.s_pos>(s_cur-back) && obj.s_pos<(s_cur+front)){
-                if(obj.d_pos < -road_w/4) return true;
-            }
-        }
-        //右车道
-        if(position == 2){
-            if(obj.s_pos>(s_cur-back) && obj.s_pos<(s_cur+front)){
-                if(obj.d_pos > -road_w/4) return true;
-            }
-        }
-    }
-    return false;
-}
 
-
-//*****************************************************************************************************************
-
-
-//*******************************************************任务表*****************************************************
-/**
- * @brief 根据线程id为任务表添加任务UDP
- * @param 
- */
-void task_server::Add_task(std::string str){
-    std::stringstream sin;
-    sin << std::this_thread::get_id();
-    std::string stid = sin.str();
-    unsigned long long tid = std::stoull(stid);
-    task_table[tid] = str;
-}
-
-/**
- * @brief 删除该线程对应的任务表中任务
- * @param 
- */
-void task_server::Delete_task(){
-    std::stringstream sin;
-    sin << std::this_thread::get_id();
-    std::string stid = sin.str();
-    unsigned long long tid = std::stoull(stid);
-    task_table.erase(tid);
-}
-
-//*************************************************************************************************************
 
 void* task_server::Back_Car_pthread(void *dora_context)
 {
@@ -457,19 +311,6 @@ int run(void *dora_context)
             {
                 core.onCurPoseSDRecvd(data);
             }
-            // else if(strcmp("VehicleStat", data_id) == 0)
-            // {
-            //     core.onStatMsgRecvd(data);
-            //}
-            // else if(strncmp("road_attri_msg", data_id, 14) == 0)
-            // {
-            //     core.onAttriRecvd(data);
-            // }
-            // else if(strcmp("task_exc_service", data_id) == 0)
-            // {
-            //     core.onTaskCallRecvd(data, dora_context);
-            // }
-
         }
 
         else if (ty == DoraEventType_Stop)
@@ -529,7 +370,7 @@ int main()
     // 等待发送线程结束
     // sender_thread.join();
     // 等待接收线程结束
-    receiver_thread.detach();
+    //receiver_thread.detach();
 
 
 
@@ -544,6 +385,8 @@ int main()
 
     auto ret = run(dora_context);
     free_dora_context(dora_context);  
+
+    receiver_thread.join();
 
     std::cout << "END task_server_exc" << std::endl;
 
