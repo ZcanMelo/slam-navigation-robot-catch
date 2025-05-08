@@ -1,0 +1,2 @@
+- setup-file:
+    local-name: /home/nvidia/dora_project/hdl_localization/hdl_ndt_omp/build/devel/setup.sh
